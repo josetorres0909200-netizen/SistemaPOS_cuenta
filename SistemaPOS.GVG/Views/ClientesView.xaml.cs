@@ -16,7 +16,7 @@ namespace SistemaPOS.Desktop.Views
         public ClientesView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+            _apiClient = ApiClient.Instance;
             _todosClientes = new List<ClienteDTO>();
         }
 

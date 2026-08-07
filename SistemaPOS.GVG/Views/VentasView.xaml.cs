@@ -17,7 +17,7 @@ namespace SistemaPOS.Desktop.Views
         public VentasView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+            _apiClient = ApiClient.Instance;
             _todosProductos = new List<ProductoDTO>();
             _carritoActual = new List<DetalleVentaDTO>();
         }

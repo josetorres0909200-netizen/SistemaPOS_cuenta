@@ -14,7 +14,7 @@ namespace SistemaPOS.Desktop.Views
         public InicioView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+            _apiClient = ApiClient.Instance;
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)

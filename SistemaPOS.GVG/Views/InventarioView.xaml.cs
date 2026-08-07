@@ -14,7 +14,7 @@ namespace SistemaPOS.Desktop.Views
         public InventarioView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient(); // Instanciamos tu cliente HTTP
+            _apiClient = ApiClient.Instance; // Usar instancia Singleton con token compartido
         }
 
         // Se ejecuta automáticamente al cargar la vista en pantalla

@@ -15,7 +15,7 @@ namespace SistemaPOS.Desktop.Views
         public CajaView()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+            _apiClient = ApiClient.Instance;
             _todasCajas = new List<CajaDTO>();
         }
 

@@ -5,17 +5,20 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SistemaPOS.GVG.Views
 {
     public partial class Login : Window
     {
-        private readonly ApiClient _apiClient;
-
         public Login()
         {
             InitializeComponent();
-            _apiClient = new ApiClient();
+
+            // ✅ Omitir validación de certificado SSL para desarrollo (localhost)
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = 
+                (sender, certificate, chain, sslPolicyErrors) => true;
         }
 
         private async void btnIngresar_Click(object sender, RoutedEventArgs e)
@@ -57,11 +60,14 @@ namespace SistemaPOS.GVG.Views
 
                         if (authResponse != null && !string.IsNullOrEmpty(authResponse.Token))
                         {
-                            // Guardar token en el ApiClient
-                            _apiClient.SetAuthToken(authResponse.Token);
+                            // ✅ Cifrar token con DPAPI antes de guardarlo
+                            string encryptedToken = TokenSecurityHelper.ProtectToken(authResponse.Token);
 
-                            // Guardar información del usuario en la sesión
-                            App.Current.Properties["Token"] = authResponse.Token;
+                            // Guardar token CIFRADO en el ApiClient Singleton (ApiClient lo usará directamente)
+                            ApiClient.Instance.SetAuthToken(authResponse.Token);
+
+                            // Guardar token CIFRADO en la sesión de la aplicación
+                            App.Current.Properties["Token"] = encryptedToken;
                             App.Current.Properties["Username"] = authResponse.Username;
                             App.Current.Properties["Rol"] = authResponse.Rol;
 

@@ -1,20 +1,52 @@
 ﻿using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using System.Windows;
+using SistemaPOS.GVG;
 
 namespace SistemaPOS.Desktop.Services
 {
     public class ApiClient
     {
+        // Singleton: instancia única compartida
+        private static ApiClient? _instance;
+        private static readonly object _lock = new object();
+
+        public static ApiClient Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new ApiClient();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl = "https://localhost:7269/api/";
         private string? _jwtToken;
 
-        public ApiClient()
+        // Constructor privado para Singleton
+        private ApiClient()
         {
-            _httpClient = new HttpClient();
+            // ✅ Omitir validación de certificado SSL para desarrollo (localhost)
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+            };
+
+            _httpClient = new HttpClient(handler);
             _httpClient.BaseAddress = new Uri(_baseUrl);
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
@@ -27,6 +59,31 @@ namespace SistemaPOS.Desktop.Services
             _jwtToken = token;
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        /// <summary>
+        /// Restaura el token desde App.Properties (descifra token DPAPI)
+        /// </summary>
+        public bool RestoreAuthTokenFromSession()
+        {
+            try
+            {
+                if (App.Current.Properties.Contains("Token"))
+                {
+                    string encryptedToken = App.Current.Properties["Token"]?.ToString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(encryptedToken))
+                    {
+                        string decryptedToken = TokenSecurityHelper.UnprotectToken(encryptedToken);
+                        SetAuthToken(decryptedToken);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -43,11 +100,40 @@ namespace SistemaPOS.Desktop.Services
         /// </summary>
         public bool IsAuthenticated => !string.IsNullOrEmpty(_jwtToken);
 
+        /// <summary>
+        /// Verifica si el token JWT ha expirado
+        /// </summary>
+        public bool IsTokenExpired()
+        {
+            if (string.IsNullOrEmpty(_jwtToken))
+                return true;
+
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var token = handler.ReadJwtToken(_jwtToken);
+
+                // Verificar si el token ha expirado (con margen de 30 segundos)
+                return token.ValidTo.AddSeconds(-30) < DateTime.UtcNow;
+            }
+            catch
+            {
+                // Si hay error al leer el token, considerarlo expirado
+                return true;
+            }
+        }
+
         // Método genérico para consultar datos
         public async Task<T> GetAsync<T>(string endpoint)
         {
             try
             {
+                // ✅ Validar expiración del token antes de la petición
+                if (IsTokenExpired())
+                {
+                    throw new UnauthorizedAccessException("Sesión expirada. Por favor inicie sesión nuevamente.");
+                }
+
                 var response = await _httpClient.GetAsync(endpoint);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -90,6 +176,12 @@ namespace SistemaPOS.Desktop.Services
         {
             try
             {
+                // ✅ Validar expiración del token antes de la petición
+                if (IsTokenExpired())
+                {
+                    throw new UnauthorizedAccessException("Sesión expirada. Por favor inicie sesión nuevamente.");
+                }
+
                 var response = await _httpClient.PostAsJsonAsync(endpoint, data);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -120,6 +212,12 @@ namespace SistemaPOS.Desktop.Services
         {
             try
             {
+                // ✅ Validar expiración del token antes de la petición
+                if (IsTokenExpired())
+                {
+                    throw new UnauthorizedAccessException("Sesión expirada. Por favor inicie sesión nuevamente.");
+                }
+
                 var response = await _httpClient.PutAsJsonAsync($"{endpoint}/{id}", data);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -150,6 +248,12 @@ namespace SistemaPOS.Desktop.Services
         {
             try
             {
+                // ✅ Validar expiración del token antes de la petición
+                if (IsTokenExpired())
+                {
+                    throw new UnauthorizedAccessException("Sesión expirada. Por favor inicie sesión nuevamente.");
+                }
+
                 var response = await _httpClient.DeleteAsync($"{endpoint}/{id}");
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
