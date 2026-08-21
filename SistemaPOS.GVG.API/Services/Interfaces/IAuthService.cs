@@ -29,13 +29,4 @@ namespace SistemaPOS.GVG.API.Services.Interfaces
         /// </summary>
         bool VerifyPassword(string password, string hash);
     }
-
-    public class AuthResponseDTO
-    {
-        public string Token { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty;
-        public DateTime Expiration { get; set; }
-    }
 }

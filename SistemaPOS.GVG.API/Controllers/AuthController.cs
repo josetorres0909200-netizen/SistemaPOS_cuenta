@@ -263,16 +263,6 @@ GO
     }
 
     /// <summary>
-    /// DTO para registro de usuarios
-    /// </summary>
-    public class RegisterDTO
-    {
-        public required string Username { get; set; }
-        public required string Password { get; set; }
-        public string? Rol { get; set; }
-    }
-
-    /// <summary>
     /// DTO para prueba de hash (TEMPORAL - solo desarrollo)
     /// </summary>
     public class TestHashRequest
@@ -288,4 +278,5 @@ GO
     {
         public string Password { get; set; } = string.Empty;
     }
+
 }

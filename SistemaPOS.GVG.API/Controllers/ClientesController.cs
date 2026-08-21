@@ -43,6 +43,9 @@ namespace SistemaPOS.API.Controllers
         {
             try
             {
+                if (id <= 0)
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El ID del cliente debe ser válido"));
+
                 var cliente = await _context.Clientes.FindAsync(id);
                 if (cliente == null)
                     return NotFound(ApiResponse<object>.ErrorResponse($"Cliente con ID {id} no encontrado"));
@@ -63,14 +66,31 @@ namespace SistemaPOS.API.Controllers
         {
             try
             {
+                if (cliente == null)
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El cliente no puede ser nulo"));
+
                 if (!ModelState.IsValid)
                     return BadRequest(ApiResponse<object>.ErrorResponse("Datos inválidos",
                         ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList()));
 
+                // Validar campos obligatorios
+                if (string.IsNullOrWhiteSpace(cliente.Nombre))
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El nombre del cliente es requerido"));
+
+                if (string.IsNullOrWhiteSpace(cliente.Telefono))
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El teléfono del cliente es requerido"));
+
+                // Validar email si se proporciona
+                if (!string.IsNullOrEmpty(cliente.Correo))
+                {
+                    if (!cliente.Correo.Contains("@"))
+                        return BadRequest(ApiResponse<object>.ErrorResponse("El email no tiene un formato válido"));
+                }
+
                 _context.Clientes.Add(cliente);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Cliente creado: {cliente.IdCliente}");
+                _logger.LogInformation($"Cliente creado: {cliente.IdCliente} - {cliente.Nombre}");
                 return CreatedAtAction(nameof(GetCliente), new { id = cliente.IdCliente },
                     ApiResponse<Cliente>.SuccessResponse(cliente, "Cliente creado exitosamente"));
             }
@@ -86,15 +106,32 @@ namespace SistemaPOS.API.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResponse<Cliente>>> PutCliente(int id, Cliente cliente)
         {
+            if (id <= 0)
+                return BadRequest(ApiResponse<object>.ErrorResponse("El ID del cliente debe ser válido"));
+
+            if (cliente == null)
+                return BadRequest(ApiResponse<object>.ErrorResponse("El cliente no puede ser nulo"));
+
             if (id != cliente.IdCliente)
-                return BadRequest(ApiResponse<object>.ErrorResponse("ID no coincide"));
+                return BadRequest(ApiResponse<object>.ErrorResponse("El ID en la URL no coincide con el cliente"));
 
             try
             {
+                if (!ModelState.IsValid)
+                    return BadRequest(ApiResponse<object>.ErrorResponse("Datos inválidos",
+                        ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)).ToList()));
+
+                // Validar campos obligatorios
+                if (string.IsNullOrWhiteSpace(cliente.Nombre))
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El nombre del cliente es requerido"));
+
+                if (string.IsNullOrWhiteSpace(cliente.Telefono))
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El teléfono del cliente es requerido"));
+
                 _context.Entry(cliente).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Cliente actualizado: {id}");
+                _logger.LogInformation($"Cliente actualizado: {id} - {cliente.Nombre}");
                 return Ok(ApiResponse<Cliente>.SuccessResponse(cliente, "Cliente actualizado exitosamente"));
             }
             catch (DbUpdateConcurrencyException)
@@ -115,6 +152,9 @@ namespace SistemaPOS.API.Controllers
         {
             try
             {
+                if (id <= 0)
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El ID del cliente debe ser válido"));
+
                 var cliente = await _context.Clientes.FindAsync(id);
                 if (cliente == null)
                     return NotFound(ApiResponse<object>.ErrorResponse($"Cliente con ID {id} no encontrado"));
@@ -122,7 +162,7 @@ namespace SistemaPOS.API.Controllers
                 cliente.Activo = false;
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"Cliente desactivado: {id}");
+                _logger.LogInformation($"Cliente desactivado: {id} - {cliente.Nombre}");
                 return Ok(ApiResponse<object>.SuccessResponse(null, "Cliente desactivado exitosamente"));
             }
             catch (Exception ex)
@@ -139,6 +179,12 @@ namespace SistemaPOS.API.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(nombre))
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El término de búsqueda es requerido"));
+
+                if (nombre.Length < 2)
+                    return BadRequest(ApiResponse<object>.ErrorResponse("El término de búsqueda debe tener al menos 2 caracteres"));
+
                 var clientes = await _context.Clientes
                     .Where(c => c.Activo && c.Nombre.ToLower().Contains(nombre.ToLower()))
                     .ToListAsync();

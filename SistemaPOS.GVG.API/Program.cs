@@ -33,7 +33,19 @@ try
         ?? throw new InvalidOperationException("ConnectionString 'DefaultConnection' no configurada");
 
     builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(
+            connectionString,
+            sqlServerOptionsAction: sqlOptions =>
+            {
+                // Habilitando resiliencia de reconexión con reintentos exponenciales
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+
+                // Configuración adicional para mejor rendimiento
+                sqlOptions.CommandTimeout(60);
+            }));
 
     // 2. Configuración de Rate Limiting
     builder.Services.AddMemoryCache();
@@ -126,6 +138,33 @@ try
     });
 
     var app = builder.Build();
+
+    // Aplicar migraciones automáticamente al iniciar
+    try
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Log.Information("Verificando migraciones de base de datos...");
+
+            // Aplicar migraciones pendientes
+            var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+            {
+                Log.Information("Aplicando {Count} migraciones pendientes", pendingMigrations.Count());
+                await dbContext.Database.MigrateAsync();
+                Log.Information("Migraciones aplicadas exitosamente");
+            }
+            else
+            {
+                Log.Information("No hay migraciones pendientes. Base de datos está actualizada");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "No se pudieron aplicar las migraciones. La base de datos puede no estar disponible. Se continuará con la ejecución.");
+    }
 
     // Pipeline de Middleware
     app.UseExceptionHandler();

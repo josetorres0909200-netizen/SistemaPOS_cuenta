@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SistemaPOS.GVG.API.Migrations
 {
     /// <inheritdoc />
-    public partial class AgregarVentasYClientes : Migration
+    public partial class MigracionInicialCompleta : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,11 +21,11 @@ namespace SistemaPOS.GVG.API.Migrations
                     Ubicacion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     FechaApertura = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaCierre = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SaldoEfectivo = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    SaldoInicial = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    SaldoEfectivo = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TotalVentas = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TotalEgresos = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SaldoFinal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    SaldoFinal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Estado = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
                     Notas = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -57,6 +57,42 @@ namespace SistemaPOS.GVG.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Productos",
+                columns: table => new
+                {
+                    IdProducto = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CodigoBarras = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Categoria = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Acabado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Tamanio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PrecioCosto = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PrecioVenta = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Stock = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Productos", x => x.IdProducto);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    IdUsuario = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Rol = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.IdUsuario);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ventas",
                 columns: table => new
                 {
@@ -64,11 +100,11 @@ namespace SistemaPOS.GVG.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IdCliente = table.Column<int>(type: "int", nullable: true),
                     FechaVenta = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Impuesto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Pagado = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Cambio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Impuesto = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Pagado = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Cambio = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TipoPago = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Observaciones = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     UsuarioId = table.Column<int>(type: "int", nullable: false),
@@ -93,9 +129,9 @@ namespace SistemaPOS.GVG.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IdVenta = table.Column<int>(type: "int", nullable: false),
                     IdProducto = table.Column<int>(type: "int", nullable: false),
-                    Cantidad = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
-                    PrecioUnitario = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Cantidad = table.Column<decimal>(type: "decimal(10,2)", precision: 18, scale: 2, nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Descuento = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
@@ -115,6 +151,37 @@ namespace SistemaPOS.GVG.API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Usuarios",
+                columns: new[] { "IdUsuario", "Activo", "PasswordHash", "Rol", "Username" },
+                values: new object[] { 1, true, "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU2U8kqGzP9i", "Admin", "admin" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cajas_Estado",
+                table: "Cajas",
+                column: "Estado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cajas_FechaApertura",
+                table: "Cajas",
+                column: "FechaApertura",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Activo",
+                table: "Clientes",
+                column: "Activo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Activo_Nombre",
+                table: "Clientes",
+                columns: new[] { "Activo", "Nombre" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Nombre",
+                table: "Clientes",
+                column: "Nombre");
+
             migrationBuilder.CreateIndex(
                 name: "IX_DetalleVentas_IdProducto",
                 table: "DetalleVentas",
@@ -126,9 +193,58 @@ namespace SistemaPOS.GVG.API.Migrations
                 column: "IdVenta");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Productos_Categoria",
+                table: "Productos",
+                column: "Categoria");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Productos_CodigoBarras",
+                table: "Productos",
+                column: "CodigoBarras",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Productos_Descripcion",
+                table: "Productos",
+                column: "Descripcion");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_Activo",
+                table: "Usuarios",
+                column: "Activo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_Rol",
+                table: "Usuarios",
+                column: "Rol");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_Username",
+                table: "Usuarios",
+                column: "Username",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ventas_Cancelada_FechaVenta",
+                table: "Ventas",
+                columns: new[] { "Cancelada", "FechaVenta" },
+                descending: new[] { false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ventas_FechaVenta",
+                table: "Ventas",
+                column: "FechaVenta",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Ventas_IdCliente",
                 table: "Ventas",
                 column: "IdCliente");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Ventas_UsuarioId",
+                table: "Ventas",
+                column: "UsuarioId");
         }
 
         /// <inheritdoc />
@@ -139,6 +255,12 @@ namespace SistemaPOS.GVG.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "DetalleVentas");
+
+            migrationBuilder.DropTable(
+                name: "Usuarios");
+
+            migrationBuilder.DropTable(
+                name: "Productos");
 
             migrationBuilder.DropTable(
                 name: "Ventas");

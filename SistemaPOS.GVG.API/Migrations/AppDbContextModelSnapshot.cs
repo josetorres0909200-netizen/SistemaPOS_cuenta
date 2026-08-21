@@ -50,12 +50,15 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("SaldoEfectivo")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("SaldoFinal")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("SaldoInicial")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalEgresos")
@@ -72,6 +75,13 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("IdCaja");
+
+                    b.HasIndex("Estado")
+                        .HasDatabaseName("IX_Cajas_Estado");
+
+                    b.HasIndex("FechaApertura")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Cajas_FechaApertura");
 
                     b.ToTable("Cajas");
                 });
@@ -120,6 +130,15 @@ namespace SistemaPOS.GVG.API.Migrations
 
                     b.HasKey("IdCliente");
 
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_Clientes_Activo");
+
+                    b.HasIndex("Nombre")
+                        .HasDatabaseName("IX_Clientes_Nombre");
+
+                    b.HasIndex("Activo", "Nombre")
+                        .HasDatabaseName("IX_Clientes_Activo_Nombre");
+
                     b.ToTable("Clientes");
                 });
 
@@ -132,6 +151,7 @@ namespace SistemaPOS.GVG.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdDetalle"));
 
                     b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal>("Descuento")
@@ -144,16 +164,20 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("IdDetalle");
 
-                    b.HasIndex("IdProducto");
+                    b.HasIndex("IdProducto")
+                        .HasDatabaseName("IX_DetalleVentas_IdProducto");
 
-                    b.HasIndex("IdVenta");
+                    b.HasIndex("IdVenta")
+                        .HasDatabaseName("IX_DetalleVentas_IdVenta");
 
                     b.ToTable("DetalleVentas");
                 });
@@ -172,23 +196,26 @@ namespace SistemaPOS.GVG.API.Migrations
 
                     b.Property<string>("Categoria")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CodigoBarras")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("PrecioCosto")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PrecioVenta")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Stock")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Tamanio")
@@ -196,6 +223,16 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("IdProducto");
+
+                    b.HasIndex("Categoria")
+                        .HasDatabaseName("IX_Productos_Categoria");
+
+                    b.HasIndex("CodigoBarras")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Productos_CodigoBarras");
+
+                    b.HasIndex("Descripcion")
+                        .HasDatabaseName("IX_Productos_Descripcion");
 
                     b.ToTable("Productos");
                 });
@@ -209,6 +246,7 @@ namespace SistemaPOS.GVG.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdVenta"));
 
                     b.Property<decimal>("Cambio")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("Cancelada")
@@ -221,6 +259,7 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Impuesto")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Observaciones")
@@ -228,9 +267,11 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<decimal>("Pagado")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("TipoPago")
@@ -239,6 +280,7 @@ namespace SistemaPOS.GVG.API.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UsuarioId")
@@ -246,7 +288,19 @@ namespace SistemaPOS.GVG.API.Migrations
 
                     b.HasKey("IdVenta");
 
-                    b.HasIndex("IdCliente");
+                    b.HasIndex("FechaVenta")
+                        .IsDescending()
+                        .HasDatabaseName("IX_Ventas_FechaVenta");
+
+                    b.HasIndex("IdCliente")
+                        .HasDatabaseName("IX_Ventas_IdCliente");
+
+                    b.HasIndex("UsuarioId")
+                        .HasDatabaseName("IX_Ventas_UsuarioId");
+
+                    b.HasIndex("Cancelada", "FechaVenta")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_Ventas_Cancelada_FechaVenta");
 
                     b.ToTable("Ventas");
                 });
@@ -278,7 +332,27 @@ namespace SistemaPOS.GVG.API.Migrations
 
                     b.HasKey("IdUsuario");
 
+                    b.HasIndex("Activo")
+                        .HasDatabaseName("IX_Usuarios_Activo");
+
+                    b.HasIndex("Rol")
+                        .HasDatabaseName("IX_Usuarios_Rol");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Usuarios_Username");
+
                     b.ToTable("Usuarios");
+
+                    b.HasData(
+                        new
+                        {
+                            IdUsuario = 1,
+                            Activo = true,
+                            PasswordHash = "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5NU2U8kqGzP9i",
+                            Rol = "Admin",
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("SistemaPOS.API.Models.DetalleVenta", b =>
