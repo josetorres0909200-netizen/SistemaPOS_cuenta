@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema; // Requisito obligatorio para mapear columnas
 
 namespace SistemaPOS.GVG.API.Models
 {
@@ -8,16 +9,18 @@ namespace SistemaPOS.GVG.API.Models
         public int IdUsuario { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public string Username { get; set; } = string.Empty;
+        [StringLength(50)]
+        public string Username { get; set; }
 
         [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string PasswordHash { get; set; }
 
         [Required]
-        [MaxLength(20)]
-        public string Rol { get; set; } = string.Empty;
+        [StringLength(30)]
+        public string Rol { get; set; }
 
-        public bool Activo { get; set; } = true;
+        // AQUÍ ESTÁ LA SOLUCIÓN: Le decimos a EF Core que 'Activo' en C# es 'Estatus' en SQL Server
+        [Column("Estatus")]
+        public bool Activo { get; set; }
     }
 }
