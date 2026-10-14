@@ -55,7 +55,7 @@ namespace SistemaPOS.GVG.API.Controllers
         /// Registra un nuevo usuario (solo Admin)
         /// </summary>
         [HttpPost("register")]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous] 
         [ProducesResponseType(typeof(Usuario), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Register([FromBody] RegisterDTO request)
@@ -78,6 +78,9 @@ namespace SistemaPOS.GVG.API.Controllers
                 usuario.Username,
                 usuario.Rol
             });
+
+       
+
         }
 
         /// <summary>

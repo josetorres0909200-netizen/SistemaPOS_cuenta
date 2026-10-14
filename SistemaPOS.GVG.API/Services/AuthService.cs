@@ -5,7 +5,7 @@ using SistemaPOS.GVG.API.Models;
 using SistemaPOS.GVG.API.Services.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
+using System.Security.Cryptography; // Se mantiene para RandomNumberGenerator (Refresh Token)
 using System.Text;
 
 namespace SistemaPOS.GVG.API.Services
@@ -36,12 +36,11 @@ namespace SistemaPOS.GVG.API.Services
                     return null;
                 }
 
-                _logger.LogInformation("Usuario encontrado: {Username}, Rol: {Rol}", 
+                _logger.LogInformation("Usuario encontrado: {Username}, Rol: {Rol}",
                     usuario.Username, usuario.Rol);
 
-                // ✅ Validación con SHA256 (confiable y funcional)
-                string passwordHash = HashPassword(password);
-                bool passwordValida = passwordHash == usuario.PasswordHash;
+                // ✅ Validación segura con BCrypt
+                bool passwordValida = VerifyPassword(password, usuario.PasswordHash);
 
                 if (!passwordValida)
                 {
@@ -81,6 +80,7 @@ namespace SistemaPOS.GVG.API.Services
             var usuario = new Usuario
             {
                 Username = username,
+                // Genera el hash BCrypt automáticamente con su respectivo Salt
                 PasswordHash = HashPassword(password),
                 Rol = rol,
                 Activo = true
@@ -96,18 +96,23 @@ namespace SistemaPOS.GVG.API.Services
 
         public string HashPassword(string password)
         {
-            // SHA256: hash criptográfico seguro, unidireccional y 100% confiable
-            using (var sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
+            // Genera un hash BCrypt (por defecto usa un work factor de 11, que es ideal)
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public bool VerifyPassword(string password, string hash)
         {
-            string passwordHash = HashPassword(password);
-            return passwordHash == hash;
+            try
+            {
+                // Verifica la contraseña plana contra el hash almacenado
+                return BCrypt.Net.BCrypt.Verify(password, hash);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // Manejo de errores: Si el hash en la BD no es un hash BCrypt válido (ej. los viejos SHA256)
+                _logger.LogError("El formato del hash en la base de datos no es compatible con BCrypt.");
+                return false;
+            }
         }
 
         public bool ValidateToken(string token)
